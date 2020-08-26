@@ -34,7 +34,7 @@ int main()
 	printf("\n");
     cout << "启动成功！" << endl;
 
-    cout << "正在侦听: [IP: 49.232.45.128] [Port: 12321]" << endl;
+    cout << "正在侦听: [IP: x.x.x.x] [Port: x]" << endl;
 
     Server server;
     server.Get("/searcher", [&searcher](const Request& req, Response& resp){
