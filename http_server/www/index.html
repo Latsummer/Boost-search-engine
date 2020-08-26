@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boost文档搜索</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+    
+        html,
+        body{
+            /* 设置高度，把高度和父级元素设置一样高 */
+            height: 100%;
+            background-color: #f3f3f3;
+        }
+
+        body{
+            /*添加背景图片*/
+            background-image: url("stars.jpg");
+            background-repeat: no-repeat;/*背景不要平铺*/
+            background-size: cover;/*设置背景图尺寸，覆盖整个元素*/
+            background-position: center center;/*设置背景图的位置*/
+        }
+
+        /* 设置container样式 */
+        /* .container是类选择器，和下面标签的class属性对应，css中创建类的时候要用 . 
+            html中引用类的时候不用加 .  */
+        .container {
+            width: 800px;/*高度800像素*/
+            height: 100%;/*高度和父级元素统一*/
+            margin: 0 auto;
+            background-color: rgb(255, 255, 255, 0.4); /*给content设置半透明效果*/
+            overflow: auto; /* 自动滚动条 */
+           
+        }
+
+        /* 设置搜索框和搜索按钮样式 */
+        .header{
+            width: 100%;
+            height: 50px;
+        }
+
+        /* 复合选择器，搭配了类选择器和标签，表示class为header标签内部的input标签 */
+        .header input{
+            width: 600px;
+            height: 42px;
+            font-size: 20px;
+            padding-left: 10px; /*文字左边留白*/
+            float: left;/* 增加浮动，让input和按钮贴在一起 */
+        }
+
+        /*复合选择器，选择class为header标签内部的button标签*/
+        .header button{
+            width: 100px;
+            height: 45px;
+            color: #fff;
+            background-color: rgb(54, 147, 170);
+            font-size: 20px;
+            float: left;/* 增加浮动，让input和按钮贴在一起 */
+        }
+
+        /*设置搜索结果样式*/
+        .item{
+            width: 100%;
+            margin-top: 20px;/*结果之间边距*/
+        }
+
+        /*标题样式*/
+        .item a{
+            /* 把a设置为块级元素，a默认是行内元素，无法设置宽高 */
+            display: block;
+            width: 100%;
+            height: 40px;/*尺寸*/
+            font-size: 22px;/*字体大小*/
+            line-height: 40px;/*字体能够垂直居中，让行高和高度相等即可*/
+            font-weight: 700;/*粗字体*/
+            text-decoration: none;/*去掉下划线*/
+            color: rgb(52, 101, 121);
+        }
+
+        /*描述样式*/
+        .item p{
+            font-size: 16px;
+        }
+
+        /*展示样式*/
+        .item i{
+            font-size: 16px;
+            color: rgb(209, 110, 29);
+            font-style: normal;/*把斜体字掰直*/
+        }
+
+    </style>
+</head>
+<body>
+    <!-- div是HTML最常用的标签，没有具体语义，只是一个矩形盒子 -->
+    <!-- class 属性相当于给div起名字，通过这个名字后面可以指定样式 -->
+    <div class="container">
+        <!-- 放置首行内容，搜索框+搜索按钮 -->
+        <div class="header">
+            <!-- input标签表示输入框，此处作为搜索框 -->
+            <input class="search">
+            <!-- butten为按钮 -->
+            <!-- onlick表示点击该按钮的时候就会调用search函数 -->
+            <button onclick="search()">查询</button>
+        </div>
+
+        <!-- 放置若干个搜索结果 -->
+        <div class="result">
+
+        </div>
+    </div>
+    <!-- JS引入第三方库只需要引入相关CDN链接即可 -->
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script>
+        //是页面活起来，JS代码需要写道script标签中
+        //用户点击搜索框时，获取搜索框内容，构造http请求发送给服务器
+        //把响应结果构造到页面上显示
+        //引入JQuery
+
+        //1. 将点击按钮关联到一个函数
+        //JS定义函数时，不需要指定返回值类型（类型是可以运行时改变的）和参数类型
+        //function关键字作为起始标志
+        function search(){
+            //alert 弹出提示对话框
+            //alert("hello");
+            //1. 获取搜索框的查询词
+            //$ 是JQuery中的一个特殊对象，参数里的内容是一个CSS选择器，表示要选中某个元素
+            //2. 通过val()函数就可以得到搜索框中的查询词
+            let query = $(".header input").val();
+            //相当于printf，可以在chrome开发者工具中看到这个内容
+            console.log("query: " + query);
+            //ajax用于给服务器发送HTTP请求
+            $.ajax({
+                type: "get",//请求HTTO方法为get
+                url: "searcher?query=" + query,//请求url为searcher?query=[查询词]
+                success: function(data, status){//success对应到一个匿名函数，会在收到响应时并且状态码为200时，会自动调用该回调函数
+                //data参数就是响应结果的 body ，status就是状态码
+                    //3. 如果请求成功之后，收到相应时，调用该函数
+                    buileResult(data);
+                }
+            });
+        }
+
+        //这个函数用于根据服务器返回的JSON数据构造页面内容
+        function buileResult(data){
+            //data中的每一个元素构造一个item标签，然后添加到result标签中
+            //1. 获取result标签对应的对象
+            let result = $(".result");
+            //2. 清除result中原有的内容（上次搜索结果）
+            result.empty();
+            //3. 遍历data这个json数组
+            for(let item of data){
+                // 4. 构造这个 item 中的内容
+                //  a) 构造 a 标签作为标题
+                let title = $("<a>", {
+                    // a 标签的文本内容就是 item 的标题
+                    text: item.title,
+                    // a 标签点击后要跳转到对应的路径
+                    href: item.url,
+                    // 点击 a 标签时用新标签页打开. 
+                    target: "_blank",
+                });
+                //  b) 构造 p 标签作为描述
+                let desc = $("<p>", {
+                    text: item.desc,
+                });
+                //  c) 构造 i 标签作为 url
+                let showUrl = $("<i>", {
+                    text: item.url,
+                });
+                //  d) 把这几个标签加入到 item 标签中
+                let itemHtml = $("<div>", {
+                    class: "item",
+                });
+                title.appendTo(itemHtml);
+                desc.appendTo(itemHtml);
+                showUrl.appendTo(itemHtml);
+                //  e) 把该 item 标签加入到 result 标签中
+                itemHtml.appendTo(result);
+            }
+        }
+    </script>
+</body>
+</html>
